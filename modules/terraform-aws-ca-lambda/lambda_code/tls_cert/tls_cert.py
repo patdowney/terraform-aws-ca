@@ -79,7 +79,9 @@ def is_invalid_certificate_request(cfg: Config, common_name, csr, lifetime, forc
     ).decode("utf-8")
 
     # check for private key reuse
-    if not force_issue and not db_issue_certificate(cfg.project, cfg.environment_name, common_name, request_public_key_pem):
+    if not force_issue and not db_issue_certificate(
+        cfg.project, cfg.environment_name, common_name, request_public_key_pem
+    ):
         return {"error": "Private key has already been used for a certificate"}
 
     # check lifetime is at least 1 day
