@@ -43,7 +43,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     # create entry in DynamoDB
     db_ca_cert_issued(cfg.project, cfg.environment_name, info, base64_certificate)
 
-    # upload CRL to S3
+    # upload CRT to S3
     s3_upload(cfg.external_s3_bucket, cfg.internal_s3_bucket, pem_certificate, f"{ca_slug}.crt")
 
     return

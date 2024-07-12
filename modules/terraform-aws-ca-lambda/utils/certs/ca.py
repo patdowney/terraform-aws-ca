@@ -230,7 +230,7 @@ def ca_kms_sign_tls_certificate_request(
                 AccessDescription(
                     AuthorityInformationAccessOID.CA_ISSUERS,
                     UniformResourceIdentifier(
-                        f"http://{cfg.omain}/{ca_name(cfg.project, cfg.environment_name, 'issuing')}.crt"
+                        f"http://{cfg.domain}/{ca_name(cfg.project, cfg.environment_name, 'issuing')}.crt"
                     ),
                 )
             ]

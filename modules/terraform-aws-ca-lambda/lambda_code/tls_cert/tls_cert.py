@@ -1,5 +1,4 @@
 import base64
-import os
 
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
@@ -67,10 +66,7 @@ def sign_csr(cfg, csr, ca_name, csr_info):
     return base64.b64encode(pem_certificate), info
 
 
-def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr, lifetime, force_issue):
-    if not db_list_certificates(project, env_name, ca_name):
-        return {"error": f"CA {ca_name} not found"}
-
+def is_invalid_certificate_request(cfg: Config, common_name, csr, lifetime, force_issue):
     # get public key from CSR
     public_key = csr.public_key()
 
@@ -83,7 +79,7 @@ def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr,
     ).decode("utf-8")
 
     # check for private key reuse
-    if not force_issue and not db_issue_certificate(project, env_name, common_name, request_public_key_pem):
+    if not force_issue and not db_issue_certificate(cfg.project, cfg.environment_name, common_name, request_public_key_pem):
         return {"error": "Private key has already been used for a certificate"}
 
     # check lifetime is at least 1 day
@@ -141,6 +137,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     # get Issuing CA name
     issuing_ca_name = ca_name(cfg.project, cfg.environment_name, "issuing")
 
+    if not db_list_certificates(cfg.project, cfg.environment_name, issuing_ca_name):
+        return {"error": f"CA {issuing_ca_name} not found"}
+
     # process input
     print(f"Input: {event}")
 
@@ -160,9 +159,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
 
     validation_error = is_invalid_certificate_request(
-        cfg.project,
-        cfg.environment_name,
-        issuing_ca_name,
+        cfg,
         csr_info.subject.common_name,
         csr,
         csr_info.lifetime,
